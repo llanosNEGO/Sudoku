@@ -11,7 +11,7 @@ root.title("Sudoku")
 root.geometry("3000x2000")
 
 
-background_image = ImageTk.PhotoImage(Image.open("C:/Users/arima/Downloads/ANALISIS_ALGORITMOS/PORTADA/Principal.png.jpg"))
+background_image = ImageTk.PhotoImage(Image.open("./resources/Principal.jpeg"))
 
 background_label = tk.Label(root, image=background_image)
 background_label.place(x=0, y=0, relwidth=1, relheight=1)  # Establecer la imagen de fondo en toda la ventana
