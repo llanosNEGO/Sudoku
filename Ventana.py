@@ -1,33 +1,43 @@
 import tkinter as tk
-from tkinter import ttk , messagebox
-from PIL import Image, ImageTk 
+from tkinter import ttk, messagebox
+from PIL import Image, ImageTk
+import requests
 import time
 
-#Arreglo sudokupredefinido
-Sudoku = [
-    [0,0,1,0,3,4,0,0,6],
-    [0,4,0,0,0,2,5,8,0],
-    [0,5,0,1,8,0,0,4,0],
-    [1,3,2,0,4,0,0,0,0],
-    [0,0,0,0,1,6,0,0,0],
-    [7,6,4,8,5,0,0,2,0],
-    [0,0,0,3,9,1,0,5,8],
-    [9,1,0,7,0,8,4,0,0],
-    [6,0,0,4,2,0,0,0,7]
-    ]
+#Arreglo sudokupredefinido - Con el uso de una api obtendremos un arreglo con el sudoku a trabajar
+response = requests.get("https://sudoku-api.vercel.app/api/dosuku?query={newboard(limit:1){grids{value,difficulty}}}")
+print(response.status_code)
+# print(response.json())
+Sudoku = response.json()['newboard']['grids'][0]['value']
+dificultad = response.json()['newboard']['grids'][0]['difficulty']
 
-# def imprimir_Sudoku(Sudoku):
-#     for i in range(9):
-#         if i % 3 == 0:  # Separación cada 3 filas
-#             print("------------------------")
-#         for j in range(9):
-#             if j % 3 == 0:  # Separación cada 3 columnas
-#                 print("| ", end="")
-#             if j == 8:  # Si es la última columna, imprimir valor seguido de la separación
-#                 print(Sudoku[i][j], "|")
-#             else:
-#                 print(str(Sudoku[i][j]) + " ", end="")
-#     print("------------------------")
+
+#Sudoku = [
+#    [0,0,1,0,3,4,0,0,6],
+#    [0,4,0,0,0,2,5,8,0],
+#    [0,5,0,1,8,0,0,4,0],
+#    [1,3,2,0,4,0,0,0,0],
+#    [0,0,0,0,1,6,0,0,0],
+#    [7,6,4,8,5,0,0,2,0],
+#    [0,0,0,3,9,1,0,5,8],
+#    [9,1,0,7,0,8,4,0,0],
+#    [6,0,0,4,2,0,0,0,7]
+#    ]
+
+# Función para mostrar la solución del Sudoku
+def imprimir_Sudoku(Sudoku):
+     for i in range(9):
+         if i % 3 == 0:  # Separación cada 3 filas
+             print("------------------------")
+         for j in range(9):
+             if j % 3 == 0:  # Separación cada 3 columnas
+                 print("| ", end="")
+             if j == 8:  # Si es la última columna, imprimir valor seguido de la separación
+                 print(Sudoku[i][j], "|")
+             else:
+                 print(str(Sudoku[i][j]) + " ", end="")
+     print("------------------------")
+
 
 # Función para resolver el Sudoku
 def valido(Sudoku, n, i, j):
@@ -50,26 +60,27 @@ def resolver_sudoku(Sudoku):
                 return False
     return True
 
+
 #Panel donde se mostrara el Sudoku
 
 class SudokuGame:
     
     def __init__(self, juejuegosudoku):        
         juejuegosudoku.deiconify() #Muestra el segundo panel
-        root.withdraw()#elimina el segundo panel      
+        root.withdraw()#elimina el segundo panel
 
         self.juejuegosudoku = juejuegosudoku # widget principal
         self.juejuegosudoku.title("Juego de Sudoku") # Titulo
-        self.board = Sudoku # Genera tablero vacio 
-        self.solution = [row[:] for row in self.board] #copia el tablero vacio
+        self.board = Sudoku  # Genera tablero vacio
+        self.solution = [row[:] for row in self.board]  # Copia el tablero vacio
         resolver_sudoku(self.solution)  # Resuelve el tablero y guarda la solución
+        imprimir_Sudoku(self.solution)
         self.cells = {}  # Diccionario para almacenar las celdas
         self.timer_label = tk.Label(self.juejuegosudoku, text="Tiempo: 00:00" , font=("Arial", 16)) # Muestra el tiempo 
         self.timer_label.pack()
-        self.start_time = time.time() # Tiempo de inicio del juego
-        self.create_ui() # Crea la interfaz de usuario
-        self.update_timer() # Actualiza el temporizador
-
+        self.start_time = time.time()  # Tiempo de inicio del juego
+        self.create_ui()  # Crea la interfaz de usuario
+        self.update_timer()  # Actualiza el temporizador
 
     def create_ui(self):
         frame = tk.Frame(self.juejuegosudoku)
@@ -97,6 +108,7 @@ class SudokuGame:
             line_width = 3 if i % 3 == 0 else 1
             canvas.create_line(0, i * cell_size, 450, i * cell_size, width=line_width, fill="sky blue")
             canvas.create_line(i * cell_size, 0, i * cell_size, 450, width=line_width, fill="sky blue")
+
     # Tiempo 
     def update_timer(self):
         elapsed_time = int(time.time() - self.start_time)
@@ -104,7 +116,6 @@ class SudokuGame:
         seconds = elapsed_time % 60
         self.timer_label.config(text=f"Tiempo: {minutes:02}:{seconds:02}" + " Tiempo Limite: 05:00")
         self.juejuegosudoku.after(1000, self.update_timer) # Actualiza cada segundo
-
 
     #Revisa las casillas que esten bien 
     def check_solution(self, event):
@@ -118,6 +129,7 @@ class SudokuGame:
                     cell.config(bg="light coral")
             else:
                 cell.config(bg="white")
+
     # Hace la validacion de la casilla 
     def validate_entry(self, value, widget_name):
         if value.isdigit() or value == "":
@@ -126,11 +138,13 @@ class SudokuGame:
             self.show_error(widget_name)
             return False
         
-    #muestra mensaje de error 
+    # Muestra mensaje de error
     def show_error(self, widget_name):
         widget = self.juejuegosudoku.nametowidget(widget_name)
         widget.delete(0, tk.END)
         messagebox.showerror("Entrada inválida", "Por favor, ingrese solo números del 1 al 9.")
+
+
 
 
 
