@@ -85,7 +85,12 @@ class SudokuLevel:
         self.panel_main = panel_main
         panel_main.deiconify()
         self.panel_main.title("Selector de dificultad")
-        self.indicaciones = tk.Label(self.panel_main, text="SELECCIONA EL NIVEL DE DIFICULTAD", font=("Arial", 14))
+
+        self.fondo_imagen = ImageTk.PhotoImage(Image.open("./resources/Fondo niveles.jpg"))
+        self.fondo = tk.Label(self.panel_main, image=self.fondo_imagen)
+        self.fondo.place(x=0, y=0, relwidth=1, relheight=1)
+
+        self.indicaciones = tk.Label(self.panel_main, text="SELECCIONA EL NIVEL DE DIFICULTAD", font=("Arial", 14), bg="#007ffc", fg="white")
         self.indicaciones.pack()
 
         self.facil = tk.Button(self.panel_main, text="FACIL", font=("Bell", 16), bg="#6495ED", fg="white", command=self.nivel_facil)
@@ -94,6 +99,9 @@ class SudokuLevel:
         self.medio.place(x=168, y=100)
         self.dificil = tk.Button(self.panel_main, text="DIFICIL", font=("Bell", 16), bg="#6495ED", fg="white", command=self.nivel_dificil)
         self.dificil.place(x=165, y=150)
+
+
+
 
     def crearframejuego(self, dificultad):
         juejuegosudoku = tk.Toplevel()
@@ -233,7 +241,7 @@ title_label.place(x=150, y=80)
 def start_game():
     dificultad_sudoku = tk.Toplevel()
     dificultad_sudoku.title("Sudoku")
-    centrar_ventana(dificultad_sudoku, 400, 400)
+    centrar_ventana(dificultad_sudoku, 400, 300)
     dificultad_sudoku.overrideredirect(True)
     dificultad_sudoku.withdraw()
 
