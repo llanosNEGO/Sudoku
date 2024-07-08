@@ -1,28 +1,45 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 from PIL import Image, ImageTk
-import requests
 import time
 
-#Arreglo sudokupredefinido - Con el uso de una api obtendremos un arreglo con el sudoku a trabajar
-response = requests.get("https://sudoku-api.vercel.app/api/dosuku?query={newboard(limit:1){grids{value,difficulty}}}")
-print(response.status_code)
-# print(response.json())
-Sudoku = response.json()['newboard']['grids'][0]['value']
-dificultad = response.json()['newboard']['grids'][0]['difficulty']
+# Tableros
+sudoku_facil = [
+    [0,0,1,0,3,4,0,0,6],
+    [0,4,0,0,0,2,5,8,0],
+    [0,5,0,1,8,0,0,4,0],
+    [1,3,2,0,4,0,0,0,0],
+    [0,0,0,0,1,6,0,0,0],
+    [7,6,4,8,5,0,0,2,0],
+    [0,0,0,3,9,1,0,5,8],
+    [9,1,0,7,0,8,4,0,0],
+    [6,0,0,4,2,0,0,0,7]
+    ]
 
+sudoku_medio = [
+    [0,3,0,0,0,0,5,4,0],
+    [9,2,4,6,0,0,0,0,1],
+    [7,8,0,2,1,4,9,0,3],
+    [0,4,3,0,0,0,0,0,9],
+    [0,0,0,0,0,0,4,2,8],
+    [0,6,9,0,4,0,0,0,0],
+    [1,7,2,0,3,0,0,0,0],
+    [0,5,0,9,6,0,2,0,4],
+    [0,0,6,0,0,8,3,0,0]
+]
 
-#Sudoku = [
-#    [0,0,1,0,3,4,0,0,6],
-#    [0,4,0,0,0,2,5,8,0],
-#    [0,5,0,1,8,0,0,4,0],
-#    [1,3,2,0,4,0,0,0,0],
-#    [0,0,0,0,1,6,0,0,0],
-#    [7,6,4,8,5,0,0,2,0],
-#    [0,0,0,3,9,1,0,5,8],
-#    [9,1,0,7,0,8,4,0,0],
-#    [6,0,0,4,2,0,0,0,7]
-#    ]
+sudoku_dificil = [
+    [6,0,0,0,0,0,0,0,5],
+    [0,3,0,5,2,0,0,0,0],
+    [0,0,0,0,4,6,9,0,0],
+    [0,7,2,0,0,5,0,0,0],
+    [0,0,0,0,0,0,0,0,0],
+    [0,0,0,6,0,0,0,2,0],
+    [0,0,0,0,0,0,0,0,0],
+    [0,4,3,0,0,0,2,0,0],
+    [0,0,0,0,0,0,0,8,0]
+]
+
 
 # Función para mostrar la solución del Sudoku
 def imprimir_Sudoku(Sudoku):
@@ -46,6 +63,7 @@ def valido(Sudoku, n, i, j):
     bloque = [Sudoku[a][b] for a in range(9) for b in range(9) if (a // 3 == i // 3) and (b // 3 == j // 3)]
     return n not in fila and n not in columna and n not in bloque
 
+
 def resolver_sudoku(Sudoku):
     for i in range(9):
         for j in range(9):
@@ -61,17 +79,52 @@ def resolver_sudoku(Sudoku):
     return True
 
 
-#Panel donde se mostrara el Sudoku
+# Panel de dificultades
+class SudokuLevel:
+    def __init__(self, panel_main):
+        self.panel_main = panel_main
+        panel_main.deiconify()
+        self.panel_main.title("Selector de dificultad")
+        self.indicaciones = tk.Label(self.panel_main, text="SELECCIONA EL NIVEL DE DIFICULTAD", font=("Arial", 14))
+        self.indicaciones.pack()
 
+        self.facil = tk.Button(self.panel_main, text="FACIL", font=("Bell", 16), bg="#6495ED", fg="white", command=self.nivel_facil)
+        self.facil.place(x=171, y=50)
+        self.medio = tk.Button(self.panel_main, text="MEDIO", font=("Bell", 16), bg="#6495ED", fg="white", command=self.nivel_medio)
+        self.medio.place(x=168, y=100)
+        self.dificil = tk.Button(self.panel_main, text="DIFICIL", font=("Bell", 16), bg="#6495ED", fg="white", command=self.nivel_dificil)
+        self.dificil.place(x=165, y=150)
+
+    def crearframejuego(self, dificultad):
+        juejuegosudoku = tk.Toplevel()
+        juejuegosudoku.title("Sudoku")
+        centrar_ventana(juejuegosudoku, 700, 500)
+        juejuegosudoku.overrideredirect(True)
+        juejuegosudoku.withdraw()
+        SudokuGame(juejuegosudoku, dificultad)
+
+    def nivel_facil(self):
+        self.crearframejuego(sudoku_facil)
+        self.panel_main.destroy()
+
+    def nivel_medio(self):
+        self.crearframejuego(sudoku_medio)
+        self.panel_main.destroy()
+
+    def nivel_dificil(self):
+        self.crearframejuego(sudoku_dificil)
+        self.panel_main.destroy()
+
+
+# Panel donde se mostrara el Sudoku
 class SudokuGame:
-    
-    def __init__(self, juejuegosudoku):        
-        juejuegosudoku.deiconify() #Muestra el segundo panel
-        root.withdraw()#elimina el segundo panel
+    def __init__(self, juejuegosudoku, dificultad):
+        juejuegosudoku.deiconify()  # Muestra el segundo panel
+        root.withdraw()  # Elimina el segundo panel
 
-        self.juejuegosudoku = juejuegosudoku # widget principal
-        self.juejuegosudoku.title("Juego de Sudoku") # Titulo
-        self.board = Sudoku  # Genera tablero vacio
+        self.juejuegosudoku = juejuegosudoku  # widget principal
+        self.juejuegosudoku.title("Juego de Sudoku")  # Titulo
+        self.board = dificultad  # Genera tablero vacio
         self.solution = [row[:] for row in self.board]  # Copia el tablero vacio
         resolver_sudoku(self.solution)  # Resuelve el tablero y guarda la solución
         imprimir_Sudoku(self.solution)
@@ -82,12 +135,15 @@ class SudokuGame:
         self.create_ui()  # Crea la interfaz de usuario
         self.update_timer()  # Actualiza el temporizador
 
+        self.exit_ = tk.Button(self.juejuegosudoku, text="EXIT", font=("Bell", 14), bg="#6495ED", fg="white", command=lambda: [self.juejuegosudoku.destroy(), root.deiconify()])
+        self.exit_.place(x=600, y=440)
+
     def create_ui(self):
         frame = tk.Frame(self.juejuegosudoku)
         frame.pack()
-        canvas = tk.Canvas(frame, width=450, height=450) #para las lineas de separacion
+        canvas = tk.Canvas(frame, width=450, height=450) # para las lineas de separacion
         canvas.pack()
-        cell_size = 50 #Tamaño de las lineas predeterminado
+        cell_size = 50  # Tamaño de las lineas predeterminado
 
         for i in range(9):
             for j in range(9):
@@ -117,7 +173,7 @@ class SudokuGame:
         self.timer_label.config(text=f"Tiempo: {minutes:02}:{seconds:02}" + " Tiempo Limite: 05:00")
         self.juejuegosudoku.after(1000, self.update_timer) # Actualiza cada segundo
 
-    #Revisa las casillas que esten bien 
+    # Revisa las casillas que esten bien
     def check_solution(self, event):
         for (i, j), cell in self.cells.items():
             value = cell.get()
@@ -145,58 +201,54 @@ class SudokuGame:
         messagebox.showerror("Entrada inválida", "Por favor, ingrese solo números del 1 al 9.")
 
 
+# Panel principal
+def centrar_ventana(frame, ancho, altura):
+    # Obtén el ancho y alto de la pantalla
+    screen_width = frame.winfo_screenwidth()
+    screen_height = frame.winfo_screenheight()
 
+    # Calcula la posición x y y para centrar la ventana
+    x = (screen_width // 2) - (ancho // 2)
+    y = (screen_height // 2) - (altura // 2)
 
+    # Establece la geometría de la ventana
+    frame.geometry(f'{ancho}x{altura}+{x}+{y}')
 
-# def Segundo_paneljuego():
-#     global Sudoku
-#     juejuegosudoku.deiconify() #Muestra el segundo panel
-#     root.withdraw()#elimina el segundo panel
-
-#     # Resolver Sudoku
-#     # if resolver_sudoku(Sudoku):
-#     #     imprimir_Sudoku(Sudoku)
-#     # else:
-#     #     print("No se encontró solución")
-
-#     # recorrer el arreglo del sudoku
-#     for i in range(9):
-#         for j in range(9):
-#             if Sudoku[i][j] == 0:
-#                 label = tk.Label(juejuegosudoku, text=" ", width=4, height=2, font=('bell', 10), bg="#659DCC")
-#             else:
-#                 label = tk.Label(juejuegosudoku, text=str(Sudoku[i][j]), width=4, height=2, font=('bell', 10))
-#             label.grid(row=i, column=j, padx=1, pady=1)
-
-#Panel principal
 
 root = tk.Tk()
 root.title("Sudoku")
-root.geometry("500x500")
+centrar_ventana(root, 500, 500)
+root.overrideredirect(True)
 
+# Establecer la imagen de fondo en toda la ventana
 background_image = ImageTk.PhotoImage(Image.open("./resources/Fondo.jpeg"))
-
 background_label = tk.Label(root, image=background_image)
 background_label.place(x=0, y=0, relwidth=1, relheight=1)  
-# Establecer la imagen de fondo en toda la ventana
-
 
 title_label = tk.Label(root, text="SUDOKU", font=("Bell", 30), bg = "#659DCC",fg="white")
 title_label.place(x=150, y=80)
 
 
-#Llamado al segundo panel, aca lo crea al panel 
-juejuegosudoku = tk.Toplevel()
-juejuegosudoku.title("Sudoku")
-juejuegosudoku.geometry("700x500")
-juejuegosudoku.deiconify()
-juejuegosudoku.withdraw()
-
-# Función para iniciar el juego
+# Instancia panel dificultades
 def start_game():
-    SudokuGame(juejuegosudoku)
+    dificultad_sudoku = tk.Toplevel()
+    dificultad_sudoku.title("Sudoku")
+    centrar_ventana(dificultad_sudoku, 400, 400)
+    dificultad_sudoku.overrideredirect(True)
+    dificultad_sudoku.withdraw()
+
+    SudokuLevel(dificultad_sudoku)
+
+
+# Cerrar Juego
+def exit_game():
+    root.destroy()
+
 
 start_button = tk.Button(root, text="START GAME", font=("Bell", 14), bg="#6495ED", fg="white", command=start_game)
 start_button.place(x=180, y=440)
+
+close_button = tk.Button(root, text="EXIT", font=("Bell", 14), bg="#6495ED", fg="white", command=exit_game)
+close_button.place(x=400, y=440)
 
 root.mainloop()
