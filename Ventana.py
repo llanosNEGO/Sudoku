@@ -83,25 +83,24 @@ def resolver_sudoku(Sudoku):
 class SudokuLevel:
     def __init__(self, panel_main):
         self.panel_main = panel_main
-        panel_main.deiconify()
+
+        self.panel_main.deiconify()
         self.panel_main.title("Selector de dificultad")
 
         self.fondo_imagen = ImageTk.PhotoImage(Image.open("./resources/Fondo niveles.jpg"))
-        self.fondo = tk.Label(self.panel_main, image=self.fondo_imagen)
-        self.fondo.place(x=0, y=0, relwidth=1, relheight=1)
 
+        self.fondo = tk.Label(self.panel_main, image=self.fondo_imagen)
         self.indicaciones = tk.Label(self.panel_main, text="SELECCIONA EL NIVEL DE DIFICULTAD", font=("Arial", 14), bg="#007ffc", fg="white")
-        self.indicaciones.pack()
 
         self.facil = tk.Button(self.panel_main, text="FACIL", font=("Bell", 16), bg="#6495ED", fg="white", command=self.nivel_facil)
-        self.facil.place(x=171, y=50)
         self.medio = tk.Button(self.panel_main, text="MEDIO", font=("Bell", 16), bg="#6495ED", fg="white", command=self.nivel_medio)
-        self.medio.place(x=168, y=100)
         self.dificil = tk.Button(self.panel_main, text="DIFICIL", font=("Bell", 16), bg="#6495ED", fg="white", command=self.nivel_dificil)
-        self.dificil.place(x=165, y=150)
 
-
-
+        self.fondo.place(x=0, y=0, relwidth=1, relheight=1)
+        self.indicaciones.place(x=10, y=25)
+        self.facil.place(x=171, y=70)
+        self.medio.place(x=168, y=120)
+        self.dificil.place(x=165, y=170)
 
     def crearframejuego(self, dificultad):
         juejuegosudoku = tk.Toplevel()
@@ -111,45 +110,58 @@ class SudokuLevel:
         juejuegosudoku.withdraw()
         SudokuGame(juejuegosudoku, dificultad)
 
+    def cerrarframe(self):
+        self.panel_main.destroy()
+
     def nivel_facil(self):
         self.crearframejuego(sudoku_facil)
-        self.panel_main.destroy()
+        self.cerrarframe()
 
     def nivel_medio(self):
         self.crearframejuego(sudoku_medio)
-        self.panel_main.destroy()
+        self.cerrarframe()
 
     def nivel_dificil(self):
         self.crearframejuego(sudoku_dificil)
-        self.panel_main.destroy()
+        self.cerrarframe()
 
 
-# Panel donde se mostrara el Sudoku
+# Panel del Juego Sudoku
 class SudokuGame:
     def __init__(self, juejuegosudoku, dificultad):
         juejuegosudoku.deiconify()  # Muestra el segundo panel
         root.withdraw()  # Elimina el segundo panel
 
         self.juejuegosudoku = juejuegosudoku  # widget principal
+        self.dificultad = dificultad
         self.juejuegosudoku.title("Juego de Sudoku")  # Titulo
-        self.board = dificultad  # Genera tablero vacio
+        self.board = self.dificultad  # Genera tablero vacio
         self.solution = [row[:] for row in self.board]  # Copia el tablero vacio
+
+        self.fondo_imagen = ImageTk.PhotoImage(Image.open("./resources/Fondo Juego.jpg"))
+        self.fondo = tk.Label(self.juejuegosudoku, image=self.fondo_imagen)
+        self.fondo.place(x=0, y=0, relwidth=1, relheight=1)
+
         resolver_sudoku(self.solution)  # Resuelve el tablero y guarda la solución
         imprimir_Sudoku(self.solution)
+
         self.cells = {}  # Diccionario para almacenar las celdas
-        self.timer_label = tk.Label(self.juejuegosudoku, text="Tiempo: 00:00" , font=("Arial", 16)) # Muestra el tiempo 
+        self.timer_label = tk.Label(self.juejuegosudoku, text="Tiempo: 00:00" , font=("Arial", 16)) # Muestra el tiempo
         self.timer_label.pack()
         self.start_time = time.time()  # Tiempo de inicio del juego
         self.create_ui()  # Crea la interfaz de usuario
         self.update_timer()  # Actualiza el temporizador
 
-        self.exit_ = tk.Button(self.juejuegosudoku, text="EXIT", font=("Bell", 14), bg="#6495ED", fg="white", command=lambda: [self.juejuegosudoku.destroy(), root.deiconify()])
-        self.exit_.place(x=600, y=440)
+        self.verificar_ = tk.Button(self.juejuegosudoku, text="VERIFICAR", font=("Bell", 12), bg="#6495ED", fg="white", command=self.verify_game)
+        self.exit_ = tk.Button(self.juejuegosudoku, text="EXIT", font=("Bell", 14), bg="#6495ED", fg="white", command=self.exit_game)
+
+        self.verificar_.place(x=590, y=390)
+        self.exit_.place(x=606, y=440)
 
     def create_ui(self):
         frame = tk.Frame(self.juejuegosudoku)
         frame.pack()
-        canvas = tk.Canvas(frame, width=450, height=450) # para las lineas de separacion
+        canvas = tk.Canvas(frame, width=450, height=450)  # para las lineas de separacion
         canvas.pack()
         cell_size = 50  # Tamaño de las lineas predeterminado
 
@@ -173,13 +185,42 @@ class SudokuGame:
             canvas.create_line(0, i * cell_size, 450, i * cell_size, width=line_width, fill="sky blue")
             canvas.create_line(i * cell_size, 0, i * cell_size, 450, width=line_width, fill="sky blue")
 
+    def exit_game(self):
+        tiempo_actual = self.update_timer()
+        if tiempo_actual < 300:
+            res = messagebox.askyesno("Salir de la partida", "¿Está seguro de salir de la partida?\nAún le queda tiempo de juego")
+            if res:
+                self.juejuegosudoku.destroy()
+                root.deiconify()
+        return
+
+    def verify_game(self):
+        for (i,j), cell in self.cells.items():
+            if cell["bg"] != "light green":
+                self.check_solution("<FocusOut>")
+                return
+            else:
+                self.check_solution("<FocusOut>")
+                ans = messagebox.showinfo("Éxito", "Felicidades has completado el Sudoku :D!")
+                if ans == "ok":
+                    self.juejuegosudoku.destroy()
+                    root.deiconify()
+                return
+
     # Tiempo 
     def update_timer(self):
         elapsed_time = int(time.time() - self.start_time)
+        if elapsed_time > 300:
+            res = messagebox.showerror("Game Over", "Tiempo Cumplido :(")
+            if res == "ok":
+                self.exit_game()
+                return
+
         minutes = elapsed_time // 60
         seconds = elapsed_time % 60
         self.timer_label.config(text=f"Tiempo: {minutes:02}:{seconds:02}" + " Tiempo Limite: 05:00")
-        self.juejuegosudoku.after(1000, self.update_timer) # Actualiza cada segundo
+        self.juejuegosudoku.after(1000, self.update_timer)  # Actualiza cada segundo
+        return elapsed_time
 
     # Revisa las casillas que esten bien
     def check_solution(self, event):
@@ -201,7 +242,7 @@ class SudokuGame:
         else:
             self.show_error(widget_name)
             return False
-        
+
     # Muestra mensaje de error
     def show_error(self, widget_name):
         widget = self.juejuegosudoku.nametowidget(widget_name)
@@ -222,21 +263,6 @@ def centrar_ventana(frame, ancho, altura):
     # Establece la geometría de la ventana
     frame.geometry(f'{ancho}x{altura}+{x}+{y}')
 
-
-root = tk.Tk()
-root.title("Sudoku")
-centrar_ventana(root, 500, 500)
-root.overrideredirect(True)
-
-# Establecer la imagen de fondo en toda la ventana
-background_image = ImageTk.PhotoImage(Image.open("./resources/Fondo.jpeg"))
-background_label = tk.Label(root, image=background_image)
-background_label.place(x=0, y=0, relwidth=1, relheight=1)  
-
-title_label = tk.Label(root, text="SUDOKU", font=("Bell", 30), bg = "#659DCC",fg="white")
-title_label.place(x=150, y=80)
-
-
 # Instancia panel dificultades
 def start_game():
     dificultad_sudoku = tk.Toplevel()
@@ -250,13 +276,28 @@ def start_game():
 
 # Cerrar Juego
 def exit_game():
-    root.destroy()
+    ans = messagebox.askyesno("Salir del juego", "¿Está seguro de salir del juego?")
+    if ans:
+        root.destroy()
 
 
+root = tk.Tk()
+root.title("Sudoku")
+centrar_ventana(root, 500, 500)
+root.overrideredirect(True)
+
+icon_image = ImageTk.PhotoImage(Image.open("./resources/sudoku.ico"))
+background_image = ImageTk.PhotoImage(Image.open("./resources/Fondo.jpeg"))
+background_label = tk.Label(root, image=background_image)
+root.iconphoto(True, icon_image)
+
+title_label = tk.Label(root, text="SUDOKU", font=("Bell", 30), bg = "#659DCC",fg="white")
 start_button = tk.Button(root, text="START GAME", font=("Bell", 14), bg="#6495ED", fg="white", command=start_game)
-start_button.place(x=180, y=440)
-
 close_button = tk.Button(root, text="EXIT", font=("Bell", 14), bg="#6495ED", fg="white", command=exit_game)
+
+background_label.place(x=0, y=0, relwidth=1, relheight=1)
+title_label.place(x=150, y=80)
+start_button.place(x=180, y=440)
 close_button.place(x=400, y=440)
 
 root.mainloop()
